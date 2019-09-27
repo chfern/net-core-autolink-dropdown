@@ -1,8 +1,9 @@
-﻿using System;
+﻿using NetCoreAutoLinkDropdown.AutoLinkDropdownBehavior;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace NetCoreAutoLinkDropdown.AutoLinkDropdown
+namespace NetCoreAutoLinkDropdown.DropdownRegistry
 {
 	public class AutoLinkDropdownRegistry
 	{
