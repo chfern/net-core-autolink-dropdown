@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.TagHelpers;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.TagHelpers;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using System;
@@ -12,15 +13,17 @@ namespace NetCoreAutoLinkDropdown.TagHelpers
 	[HtmlTargetElement("autolink-dropdown")]
 	public class AutoLinkDropdown : TagHelper
 	{
+		private readonly IHttpContextAccessor contextAccessor;
 		protected IHtmlGenerator generator;
 
 		public string Provider { get; set; }
 		public string ProvideFor { get; set; }
 		public string SubDropdownKey { get; set; }
 
-		public AutoLinkDropdown(IHtmlGenerator generator)
+		public AutoLinkDropdown(IHtmlGenerator generator, IHttpContextAccessor contextAccessor)
 		{
 			this.generator = generator;
+			this.contextAccessor = contextAccessor;
 		}
 
 		public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
@@ -41,24 +44,32 @@ namespace NetCoreAutoLinkDropdown.TagHelpers
 			SubscriberDropdowns.ForEach(subscriberDropdown =>
 			{
 				scriptStringBuilder.Append($@"
-					$(document).off('change').on('change', '#{Provider}', function(event){{
-						const selected = $(this).val();
+					document.getElementById('{Provider}').ondropdownchanged = async function(event){{
+						const selected = this.value;
+						const autolinkSubdropdownItemsRes = await fetch(`{contextAccessor.HttpContext.Request.Scheme}://{contextAccessor.HttpContext.Request.Host}/AutoLinkDropdownProvider/ChildDropdown?ParentId={Provider}&SubDropdownKey={SubDropdownKey}&ParentValue=${{selected}}`, {{headers: {{
+								  'Content-Type': 'application/json'
+								}}
+							}})
+						const autolinkSubdropdownItems = await autolinkSubdropdownItemsRes.json()
 
-						$.ajax({{
-							url: `${{BASE_URL}}/AutoLinkDropdownProvider/ChildDropdown?ParentId={Provider}&SubDropdownKey={SubDropdownKey}&ParentValue=${{selected}}`,
-							success: function(selectListItems){{
-								$('#{subscriberDropdown}').empty();
-								selectListItems.forEach(selectListItem => {{
-									$('<option/>').val(selectListItem.value).html(selectListItem.text).appendTo('#{subscriberDropdown}');
-								}});
-							}},
-							error: function(err){{
-								console.error('Ddl autolink error: ', err);
-							}}
-						}});
-					}})");
-				scriptStringBuilder.Append($@"
-					$('#{Provider}').trigger('change');
+						
+						let targetDropdown = document.getElementById('{subscriberDropdown}')
+						targetDropdown.innerHTML = ''
+						autolinkSubdropdownItems.forEach(selectListItem => {{
+							const el = document.createElement('option');
+
+							el.textContent = selectListItem.text;
+							el.value = selectListItem.value;
+							targetDropdown.options.add(el);
+						}})
+					}}
+
+					if(document.getElementById('{Provider}').ondropdownchanged)
+						document.getElementById('{Provider}').removeEventListener('change', document.getElementById('{Provider}').ondropdownchanged)
+
+					document.getElementById('{Provider}').addEventListener('change', document.getElementById('{Provider}').ondropdownchanged);
+					let changeEvent = new Event('change')
+					document.getElementById('{Provider}').dispatchEvent(changeEvent)
 				");
 			});
 			return scriptStringBuilder.ToString();

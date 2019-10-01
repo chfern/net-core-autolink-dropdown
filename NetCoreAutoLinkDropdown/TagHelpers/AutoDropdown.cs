@@ -30,19 +30,6 @@ namespace NetCoreAutoLinkDropdown.TagHelpers
 
 			string id = output.Attributes.FirstOrDefault(attribute => attribute.Name == "id").Value.ToString();
 			AutoLinkDropdownRegistry.Get().AddToDict(id, Data);
-
-			string options = BuildOptionsTag();
-			output.Content.SetHtmlContent(options);
-		}
-
-		private string BuildOptionsTag()
-		{
-			StringBuilder selectStringBuilder = new StringBuilder();
-			Data?.ForEach(datum =>
-			{
-				selectStringBuilder.Append($"<option value=\"{datum.DropdownValue()}\">{datum.DropdownText()}</option>");
-			});
-			return selectStringBuilder.ToString();
 		}
 	}
 }

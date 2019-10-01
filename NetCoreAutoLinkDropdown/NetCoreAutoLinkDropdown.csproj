@@ -2,6 +2,13 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <Company>fernandochristyanto</Company>
+    <Authors>Fernando Christyanto</Authors>
+    <Description>.Net Core package to help automatically link related dropdowns</Description>
+    <Copyright>(c) Fernando Christyanto</Copyright>
+    <Version>1.0.2</Version>
+    <RepositoryUrl>https://github.com/fernandochristyanto/net-core-autolink-dropdown</RepositoryUrl>
+    <RepositoryType>Github Repository</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>
